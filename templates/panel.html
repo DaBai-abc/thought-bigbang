@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>思维大爆炸 · 面板</title>
+<style>
+  :root{
+    --bg:#f7f6f3; --card:#fff; --ink:#1f1e1c; --ink2:#55534d; --muted:#8a877f;
+    --line:#e3e0d8; --accent:#2f5d8a; --accent-soft:#eaf0f6;
+    --danger:#a8412f; --danger-soft:#f7ecea; --ok:#3f7a5a; --warn:#b8862f;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.6; font-size:14px;
+    padding:28px 24px 60px; max-width:1180px; margin:0 auto;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{margin-bottom:22px}
+  .title-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  h1{font-size:22px;font-weight:600;letter-spacing:-.2px}
+  .badge{
+    display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;
+    font-weight:600;background:var(--accent-soft);color:var(--accent);
+    border:1px solid #d5e2ee;white-space:nowrap;
+  }
+  .oneliner{
+    margin-top:10px;padding:11px 14px;background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:0 var(--radius) var(--radius) 0;
+    color:var(--ink2);font-size:13.5px;
+  }
+  .oneliner.empty{color:var(--muted);font-style:normal}
+
+  nav{display:flex;gap:2px;margin:22px 0 18px;border-bottom:1px solid var(--line)}
+  nav button{
+    background:none;border:none;padding:9px 16px;cursor:pointer;font-size:14px;
+    color:var(--muted);font-family:inherit;border-bottom:2px solid transparent;
+    margin-bottom:-1px;transition:color .15s;font-weight:500;
+  }
+  nav button:hover{color:var(--ink2)}
+  nav button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  nav .count{
+    font-size:11px;padding:0 5px;border-radius:8px;background:var(--line);
+    color:var(--ink2);margin-left:5px;font-weight:600;
+  }
+  nav button.on .count{background:var(--accent-soft);color:var(--accent)}
+
+  section{display:none}
+  section.on{display:block}
+
+  /* ---- 方向墙 ---- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .angle{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 16px 12px;display:flex;flex-direction:column;position:relative;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .angle:hover{box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .angle.chosen{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .angle.chosen::before{
+    content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;
+    background:var(--accent);border-radius:0 3px 3px 0;
+  }
+  .angle.dropped{opacity:.45}
+  .angle.dropped .a-title{text-decoration:line-through}
+  .a-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .a-no{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px}
+  .a-flag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:10px}
+  .a-flag.chosen{background:var(--accent);color:#fff}
+  .a-flag.dropped{background:var(--line);color:var(--muted)}
+  .a-title{font-size:15.5px;font-weight:600;margin:8px 0 10px;line-height:1.45}
+  .a-claim{
+    font-size:13px;color:var(--ink2);padding:9px 11px;background:#fbfaf7;
+    border-radius:6px;border:1px dashed var(--line);margin-bottom:9px;
+  }
+  .a-claim::before{content:"主张 ";font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px}
+  .a-line{font-size:12.5px;color:var(--muted);margin-bottom:10px;font-style:italic}
+  .a-line::before{content:"开场 ";font-style:normal;font-size:10px;font-weight:700;letter-spacing:.5px}
+  .a-metas{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--ink2);margin-bottom:12px}
+  .a-metas b{color:var(--muted);font-weight:600;font-size:11px}
+  .a-risk b{color:var(--danger);opacity:.8}
+  .a-acts{display:flex;gap:7px;margin-top:auto;padding-top:10px;border-top:1px solid #f0eee8}
+  .btn{
+    flex:1;padding:6px 10px;border-radius:6px;border:1px solid var(--line);
+    background:var(--card);cursor:pointer;font-size:12.5px;font-family:inherit;
+    color:var(--ink2);transition:all .13s;font-weight:500;
+  }
+  .btn:hover{background:#f4f2ed;color:var(--ink)}
+  .btn.pri{border-color:var(--accent);color:var(--accent)}
+  .btn.pri:hover{background:var(--accent-soft)}
+  .btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.on:hover{background:#274d73;color:#fff}
+  .btn.dg.on{background:var(--danger);border-color:var(--danger);color:#fff}
+  .btn.dg.on:hover{background:#8d3526;color:#fff}
+
+  .statusbar{
+    margin-top:16px;padding:11px 14px;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);font-size:13px;color:var(--ink2);display:flex;
+    gap:18px;flex-wrap:wrap;align-items:center;
+  }
+  .statusbar b{color:var(--ink);font-weight:600}
+  .statusbar .lit{color:var(--accent)}
+
+  /* ---- 评分器 ---- */
+  .score-wrap{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+  @media(max-width:860px){.score-wrap{grid-template-columns:1fr}}
+  .dims{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .dim{display:grid;grid-template-columns:130px 1fr;gap:14px;padding:13px 16px;align-items:center;border-bottom:1px solid #f2f0ea}
+  .dim:last-child{border-bottom:none}
+  .dim:hover{background:#fcfbf8}
+  .d-name{font-size:13px;font-weight:600;color:var(--ink)}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opt{
+    padding:5px 11px;border-radius:6px;border:1px solid var(--line);background:var(--card);
+    cursor:pointer;font-size:12px;color:var(--ink2);font-family:inherit;transition:all .13s;
+    line-height:1.4;
+  }
+  .opt:hover{border-color:#c9c6bd;background:#f7f5f0}
+  .opt.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+
+  .verdict{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;position:sticky;top:20px;
+  }
+  .v-num{font-size:44px;font-weight:700;letter-spacing:-2px;line-height:1;color:var(--accent)}
+  .v-num small{font-size:16px;color:var(--muted);font-weight:500;letter-spacing:0}
+  .v-bar{height:6px;background:#f0eee8;border-radius:3px;margin:14px 0 16px;overflow:hidden}
+  .v-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .25s ease,background .25s}
+  .v-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px;margin-bottom:4px}
+  .v-scale{font-size:17px;font-weight:600;margin-bottom:8px}
+  .v-desc{font-size:12.5px;color:var(--ink2);line-height:1.65;padding-top:12px;border-top:1px solid #f0eee8}
+  .v-warn{margin-top:14px;padding:9px 11px;border-radius:6px;background:var(--danger-soft);
+    color:var(--danger);font-size:12px;line-height:1.55}
+
+  /* ---- 镜头看板 ---- */
+  .shots-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+  .shots-head .prog{font-size:13px;color:var(--ink2)}
+  .prog-bar{width:180px;height:6px;background:#f0eee8;border-radius:3px;overflow:hidden;margin-top:6px}
+  .prog-fill{height:100%;background:var(--ok);transition:width .25s}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);overflow:hidden;font-size:12.5px}
+  th{text-align:left;padding:10px 12px;background:#faf9f5;color:var(--muted);font-size:11px;
+    font-weight:700;letter-spacing:.4px;border-bottom:1px solid var(--line);white-space:nowrap}
+  td{padding:10px 12px;border-bottom:1px solid #f4f2ec;color:var(--ink2);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fcfbf8}
+  tr.done td{background:#f6faf7}
+  tr.done .s-content{color:var(--muted)}
+  .s-no{font-weight:700;color:var(--muted);font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .s-content{color:var(--ink);max-width:340px}
+  .s-dur{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+  .src{padding:1px 7px;border-radius:10px;font-size:11px;font-weight:600;white-space:nowrap}
+  .src.拍摄{background:#fdf2e6;color:#a8691c}
+  .src.生成{background:#eef0fa;color:#4b5391}
+  .src.检索{background:#eaf4ef;color:#3f7a5a}
+  .toggle{
+    padding:3px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);
+    cursor:pointer;font-size:11.5px;font-family:inherit;color:var(--muted);font-weight:600;
+    transition:all .13s;white-space:nowrap;
+  }
+  .toggle:hover{border-color:var(--ok);color:var(--ok)}
+  .toggle.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+  .empty-state{
+    padding:44px 20px;text-align:center;color:var(--muted);background:var(--card);
+    border:1px dashed var(--line);border-radius:var(--radius);font-size:13px;line-height:1.8;
+  }
+  .empty-state code{background:#f2f0ea;padding:1px 6px;border-radius:4px;font-size:12px;color:var(--ink2)}
+
+  .toast{
+    position:fixed;bottom:26px;left:50%;transform:translate(-50%,14px);background:var(--ink);
+    color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;opacity:0;
+    transition:all .22s;pointer-events:none;z-index:99;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .topbar{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+  .topbar .btn{flex:0 0 auto;padding:5px 13px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1 id="projName">未命名项目</h1>
+    <span class="badge" id="stageBadge">S0</span>
+    <span class="badge" id="formBadge" style="display:none"></span>
+  </div>
+  <div class="oneliner empty" id="oneLiner">尚未定义这条内容。S3 阶段收敛后会填进来。</div>
+</header>
+
+<div class="topbar">
+  <button class="btn" id="exportBtn">导出数据 JSON</button>
+</div>
+
+<nav>
+  <button class="on" data-tab="angles">方向墙 <span class="count" id="cAngles">0</span></button>
+  <button data-tab="score">资源评分 <span class="count" id="cScore">0/16</span></button>
+  <button data-tab="shots">镜头看板 <span class="count" id="cShots">0</span></button>
+</nav>
+
+<section id="tab-angles" class="on">
+  <div class="grid" id="angleGrid"></div>
+  <div class="statusbar" id="angleBar"></div>
+</section>
+
+<section id="tab-score">
+  <div class="score-wrap">
+    <div class="dims" id="dimList"></div>
+    <div class="verdict">
+      <div class="v-label">总分</div>
+      <div class="v-num"><span id="vTotal">0</span><small> / 16</small></div>
+      <div class="v-bar"><div class="v-fill" id="vFill" style="width:0%"></div></div>
+      <div class="v-label">判定方案规模</div>
+      <div class="v-scale" id="vScale">未评分</div>
+      <div class="v-desc" id="vDesc">八项各选 0 到 2 分。该分数决定后面能做到什么形态，不要按期望打，按实际情况打。</div>
+      <div class="v-warn" id="vWarn" style="display:none"></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-shots">
+  <div class="shots-head">
+    <div>
+      <div class="prog" id="shotProg">尚无镜头</div>
+      <div class="prog-bar"><div class="prog-fill" id="shotFill" style="width:0%"></div></div>
+    </div>
+    <button class="btn" id="copyShots" style="flex:0 0 auto;padding:6px 14px">复制剪辑清单</button>
+  </div>
+  <div id="shotWrap"></div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DATA = /*__PIPELINE_DATA__*/;
+
+const DIMS = [
+  {k:'face',   n:'出镜意愿', t:['完全不想露脸露声','可以出声不出镜','愿意出镜']},
+  {k:'gear',   n:'设备',     t:['只有手机、环境嘈杂','手机 + 安静空间','有相机 / 麦克风 / 灯']},
+  {k:'time',   n:'本周可投入时间', t:['少于 2 小时','2–6 小时','6 小时以上']},
+  {k:'edit',   n:'剪辑能力', t:['完全不会','会用剪映基础功能','熟练，能做节奏和调色']},
+  {k:'budget', n:'预算',     t:['0','几十到几百','上千，可外包']},
+  {k:'stock',  n:'素材存量', t:['什么都没有','有零散图片 / 片段','有成体系的素材']},
+  {k:'expert', n:'专业支撑', t:['这题只懂皮毛','有实际经验','是这行的从业者']},
+  {k:'series', n:'持续能力', t:['只打算做这一条','可能做几条','能做成系列']}
+];
+
+const SCALES = [
+  {min:12,max:16,name:'完整制作',desc:'可以做完整形态：实拍 + 剪辑 + 配音。'},
+  {min:8, max:11,name:'轻量口播',desc:'单场景、单机位、口播或图文为主，靠文案质量取胜。'},
+  {min:4, max:7, name:'图文海报',desc:'做图文、海报或纯文字。不要碰需要多镜头的视频。'},
+  {min:0, max:3, name:'纯文字验证',desc:'先做一条纯文字发出去，验证有没有人看，别投入制作。'}
+];
+
+const state = {
+  angles: (DATA.angles || []).map(a => Object.assign({}, a)),
+  score: Object.assign({face:null,gear:null,time:null,edit:null,budget:null,stock:null,expert:null,series:null}, DATA.score || {}),
+  shots: (DATA.shots || []).map(s => Object.assign({}, s))
+};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- 头部 ---------- */
+(function head(){
+  const p = DATA.project || {};
+  if (p.name) $('projName').textContent = p.name;
+  if (p.stage) $('stageBadge').textContent = p.stage;
+  if (p.form) { $('formBadge').textContent = p.form; $('formBadge').style.display = 'inline-block'; }
+  if (p.oneLiner) { $('oneLiner').textContent = p.oneLiner; $('oneLiner').classList.remove('empty'); }
+})();
+
+/* ---------- 标签切换 ---------- */
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('section').forEach(s => s.classList.remove('on'));
+    btn.classList.add('on');
+    $('tab-' + btn.dataset.tab).classList.add('on');
+  });
+});
+
+/* ---------- 方向墙 ---------- */
+function renderAngles(){
+  const grid = $('angleGrid');
+  if (!state.angles.length){
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1">还没有方向。<br>S2 阶段产出 <code>03-angles.md</code> 后，同步写入 <code>panel/data.json</code> 的 <code>angles</code> 字段再重新渲染。</div>';
+    $('angleBar').innerHTML = '';
+    $('cAngles').textContent = '0';
+    return;
+  }
+  grid.innerHTML = state.angles.map((a, i) => {
+    const st = a.status || 'candidate';
+    const flag = st === 'chosen' ? '<span class="a-flag chosen">已选定</span>'
+               : st === 'dropped' ? '<span class="a-flag dropped">已淘汰</span>' : '';
+    return `
+    <article class="angle ${st === 'chosen' ? 'chosen' : ''} ${st === 'dropped' ? 'dropped' : ''}">
+      <div class="a-head">
+        <span class="a-no">方向 ${esc(a.id != null ? a.id : i + 1)}</span>
+        ${flag}
+      </div>
+      <h2 class="a-title">${esc(a.title || '（未命名方向）')}</h2>
+      ${a.claim ? `<div class="a-claim">${esc(a.claim)}</div>` : ''}
+      ${a.firstLine ? `<div class="a-line">${esc(a.firstLine)}</div>` : ''}
+      <div class="a-metas">
+        ${a.form ? `<div><b>形态</b> ${esc(a.form)}</div>` : ''}
+        ${a.need ? `<div><b>需要</b> ${esc(a.need)}</div>` : ''}
+        ${a.risk ? `<div class="a-risk"><b>风险</b> ${esc(a.risk)}</div>` : ''}
+      </div>
+      <div class="a-acts">
+        <button class="btn pri ${st === 'chosen' ? 'on' : ''}" data-act="choose" data-i="${i}">${st === 'chosen' ? '已选定' : '选这个'}</button>
+        <button class="btn dg ${st === 'dropped' ? 'on' : ''}" data-act="drop" data-i="${i}">${st === 'dropped' ? '已淘汰' : '淘汰'}</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  const chosen = state.angles.filter(a => a.status === 'chosen');
+  const dropped = state.angles.filter(a => a.status === 'dropped').length;
+  const cand = state.angles.length - chosen.length - dropped;
+  $('cAngles').textContent = state.angles.length;
+  $('angleBar').innerHTML = `
+    <span>共 <b>${state.angles.length}</b> 个方向</span>
+    <span>已选定 <b class="lit">${chosen.length ? '方向 ' + esc(chosen[0].id) : '无'}</b></span>
+    <span>淘汰 <b>${dropped}</b></span>
+    <span>候选 <b>${cand}</b></span>
+    ${chosen.length ? `<span style="margin-left:auto;color:var(--accent)">选定后可进入 S3 评分</span>` : ''}`;
+}
+
+$('angleGrid').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const i = +btn.dataset.i;
+  const a = state.angles[i];
+  if (btn.dataset.act === 'choose'){
+    if (a.status === 'chosen') { a.status = 'candidate'; }
+    else { state.angles.forEach(x => { if (x.status === 'chosen') x.status = 'candidate'; }); a.status = 'chosen'; }
+  } else {
+    a.status = a.status === 'dropped' ? 'candidate' : 'dropped';
+  }
+  renderAngles();
+});
+
+/* ---------- 评分器 ---------- */
+function totalScore(){
+  return DIMS.reduce((sum, d) => sum + (typeof state.score[d.k] === 'number' ? state.score[d.k] : 0), 0);
+}
+function filledCount(){
+  return DIMS.filter(d => typeof state.score[d.k] === 'number').length;
+}
+function scaleOf(total){
+  for (const s of SCALES) if (total >= s.min && total <= s.max) return s;
+  return null;
+}
+
+function renderScore(){
+  $('dimList').innerHTML = DIMS.map(d => {
+    const cur = state.score[d.k];
+    return `
+    <div class="dim">
+      <div class="d-name">${esc(d.n)}</div>
+      <div class="opts">
+        ${d.t.map((label, v) => `<button class="opt ${cur === v ? 'on' : ''}" data-k="${d.k}" data-v="${v}">${v} · ${esc(label)}</button>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  const total = totalScore();
+  const filled = filledCount();
+  const s = scaleOf(total);
+  $('vTotal').textContent = total;
+  $('vFill').style.width = Math.round(total / 16 * 100) + '%';
+  $('vFill').style.background = total >= 8 ? 'var(--accent)' : total >= 4 ? 'var(--warn)' : 'var(--danger)';
+  $('vScale').textContent = filled === 0 ? '未评分' : (s ? s.name : '未评分');
+  $('vDesc').textContent = filled === 0
+    ? '八项各选 0 到 2 分。该分数决定后面能做到什么形态，不要按期望打，按实际情况打。'
+    : (s ? s.desc : '');
+  $('cScore').textContent = total + '/16';
+
+  const warn = $('vWarn');
+  if (filled > 0 && filled < 8){
+    warn.style.display = 'block';
+    warn.textContent = '还有 ' + (8 - filled) + ' 项没填，当前判定不可靠。';
+  } else if (filled === 8 && total <= 3){
+    warn.style.display = 'block';
+    warn.textContent = '评分落在这个区间，不建议投入视频制作。先发纯文字验证。';
+  } else {
+    warn.style.display = 'none';
+  }
+}
+
+$('dimList').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-k]');
+  if (!btn) return;
+  const k = btn.dataset.k, v = +btn.dataset.v;
+  state.score[k] = state.score[k] === v ? null : v;
+  renderScore();
+});
+
+/* ---------- 镜头看板 ---------- */
+function renderShots(){
+  const wrap = $('shotWrap');
+  if (!state.shots.length){
+    wrap.innerHTML = '<div class="empty-state">还没有镜头清单。<br>S5 阶段产出 <code>06-assets.md</code> 后，同步写入 <code>panel/data.json</code> 的 <code>shots</code> 字段再重新渲染。</div>';
+    $('shotProg').textContent = '尚无镜头';
+    $('shotFill').style.width = '0%';
+    $('cShots').textContent = '0';
+    return;
+  }
+  const doneN = state.shots.filter(s => s.done).length;
+  const totalDur = state.shots.reduce((n, s) => n + (Number(s.dur) || 0), 0);
+
+  wrap.innerHTML = `
+  <table>
+    <thead><tr>
+      <th style="width:52px">镜号</th><th>对应文案</th><th style="width:64px">景别</th>
+      <th>画面内容</th><th style="width:58px">时长</th><th style="width:70px">来源</th>
+      <th style="width:84px">状态</th>
+    </tr></thead>
+    <tbody>
+    ${state.shots.map((s, i) => `
+      <tr class="${s.done ? 'done' : ''}">
+        <td class="s-no">${esc(s.no || i + 1)}</td>
+        <td>${esc(s.script || '')}</td>
+        <td>${esc(s.size || '')}</td>
+        <td class="s-content">${esc(s.content || '')}</td>
+        <td class="s-dur">${Number(s.dur) || 0}s</td>
+        <td>${s.source ? `<span class="src ${esc(s.source)}">${esc(s.source)}</span>` : ''}</td>
+        <td><button class="toggle ${s.done ? 'on' : ''}" data-i="${i}">${s.done ? '已就位' : '待办'}</button></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+
+  $('shotProg').textContent = `已就位 ${doneN} / ${state.shots.length} 个镜头，总时长 ${totalDur}s`;
+  $('shotFill').style.width = Math.round(doneN / state.shots.length * 100) + '%';
+  $('cShots').textContent = `${doneN}/${state.shots.length}`;
+}
+
+$('shotWrap').addEventListener('click', e => {
+  const t = e.target.closest('button[data-i]');
+  if (!t) return;
+  const i = +t.dataset.i;
+  state.shots[i].done = !state.shots[i].done;
+  renderShots();
+});
+
+$('copyShots').addEventListener('click', async () => {
+  if (!state.shots.length) return toast('还没有镜头');
+  const lines = state.shots.map(s =>
+    `${s.no || ''}\t${s.size || ''}\t${s.dur || 0}s\t${s.source || ''}\t${s.content || ''}\t[对应] ${s.script || ''}`
+  );
+  const text = '镜号\t景别\t时长\t来源\t画面内容\t对应文案\n' + lines.join('\n');
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('剪辑清单已复制');
+  } catch (err) {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove();
+    toast('剪辑清单已复制');
+  }
+});
+
+/* ---------- 导出 ---------- */
+$('exportBtn').addEventListener('click', () => {
+  const out = JSON.parse(JSON.stringify(DATA));
+  out.angles = state.angles;
+  out.score = state.score;
+  out.shots = state.shots;
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'data.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('已导出，覆盖回 panel/data.json 即可');
+});
+
+/* ---------- 提示 ---------- */
+let toastTimer;
+function toast(msg){
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+/* ---------- 启动 ---------- */
+renderAngles();
+renderScore();
+renderShots();
+</script>
+</body>
+</html>

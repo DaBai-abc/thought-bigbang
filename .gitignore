@@ -16,6 +16,7 @@ venv/
 *.swp
 
 # 使用者本地产物（不应进仓库）
-panel/data.json
-panel.html
+# 注意用前导 / 限定在仓库根，否则会误伤 templates/panel.html
+/panel/data.json
+/panel.html
 *.log
