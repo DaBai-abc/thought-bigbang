@@ -1,0 +1,33 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate skill structure
+        run: python3 scripts/validate.py
+
+      - name: Render panel with sample data
+        run: |
+          mkdir -p /tmp/ci/panel
+          cat > /tmp/ci/panel/data.json <<'JSON'
+          {
+            "project": {"name": "CI 样例", "stage": "S3", "form": "口播", "oneLiner": "校验用"},
+            "angles": [{"id": 1, "title": "样例方向", "claim": "主张", "firstLine": "第一句", "form": "口播", "need": "无", "risk": "无", "status": "chosen"}],
+            "score": {"face": 2, "gear": 2, "time": 2, "edit": 2, "budget": 2, "stock": 2, "expert": 2, "series": 2},
+            "decision": {"chosenAngle": 1, "scale": "完整制作", "cuts": [], "notDoing": []},
+            "shots": [{"no": "01", "script": "钩子", "size": "近景", "content": "样例画面", "dur": 3, "source": "拍摄", "done": true}]
+          }
+          JSON
+          python3 scripts/render_panel.py --project /tmp/ci
+          test -f /tmp/ci/panel.html
+          grep -q "const DATA = {" /tmp/ci/panel.html

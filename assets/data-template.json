@@ -1,0 +1,36 @@
+{
+  "_说明": "思维大爆炸面板数据。复制到项目目录 panel/data.json，各阶段推进时更新对应字段。面板只读不改，真正的状态源仍是 00-state.md。",
+  "_字段": {
+    "angles[]": "id 数字 / title 方向标题 / claim 一句主张 / firstLine 开场第一句 / hit 击中的人群焦虑 / form 形态 / need 成立所需 / risk 翻车点 / status: candidate|chosen|dropped",
+    "score": "face 出镜意愿 / gear 设备 / time 本周时间 / edit 剪辑能力 / budget 预算 / stock 素材存量 / expert 专业支撑 / series 持续能力，各 0-2 或 null",
+    "decision": "chosenAngle 选定方向 id / scale 方案规模 / cuts 裁剪清单 / notDoing 明确不做",
+    "shots[]": "no 镜号 / script 对应文案 / size 景别 / content 画面内容 / dur 秒 / source: 拍摄|生成|检索 / done 布尔"
+  },
+  "project": {
+    "name": "",
+    "slug": "",
+    "startedAt": "",
+    "stage": "S0",
+    "form": "",
+    "oneLiner": ""
+  },
+  "angles": [],
+  "score": {
+    "face": null,
+    "gear": null,
+    "time": null,
+    "edit": null,
+    "budget": null,
+    "stock": null,
+    "expert": null,
+    "series": null,
+    "note": ""
+  },
+  "decision": {
+    "chosenAngle": null,
+    "scale": "",
+    "cuts": [],
+    "notDoing": []
+  },
+  "shots": []
+}
